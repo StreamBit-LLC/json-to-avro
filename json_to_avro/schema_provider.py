@@ -1,15 +1,8 @@
-import dataclasses
-
 from schema_registry.client import AsyncSchemaRegistryClient, SchemaRegistryClient
 from schema_registry.client.utils import SchemaVersion
 
 from json_to_avro.avro_schema.avro_schema_candidate import AvroSchemaCandidate
 from json_to_avro.avro_schema.registered_avro_schema import RegisteredAvroSchema, RegisteredAvroSchemaId
-from enum import Enum
-
-class OperationMode(Enum):
-    Sync = "sync"
-    Async = "async"
 
 
 class SchemaProvider:

@@ -1,30 +1,23 @@
+import dataclasses
+
+from loguru import logger
+from schema_registry.client import SchemaRegistryClient
+from schema_registry.serializers import AvroMessageSerializer
+
+from json_to_avro.avro_schema import RegisteredAvroSchemaId, AvroSchemaCandidate
+from json_to_avro.schema_provider import SchemaProvider
 from .avroable_data import AvroableData
-# class OperationMode(Enum):
-#     Sync = "sync"
-#     Async = "async"
+
 
 @dataclasses.dataclass
 class JsonToAvroConfig:
-    # operation_mode: OperationMode
     schema_registry_url: str
 
 
-# class AsyncJsonToAvro:
-#     schema_registry_client: AsyncSchemaRegistryClient
-#     serializer: AsyncAvroMessageSerializer
-#
-#     @classmethod
-#     def from_config(cls, config: JsonToAvroConfig):
-#         schema_registry = AsyncSchemaRegistryClient(url=config.schema_registry_url)
-#         return cls(schema_registry, AsyncAvroMessageSerializer(schema_registry))
-#
-#     async def serialize_as_avro(self, msg: AvroableData):
-#         raise NotImplementedError("This is not yet supported. Hopefully soon!")
-
-
 class JsonToAvro:
-    provider: SchemaProvider
-    serializer: AvroMessageSerializer
+    def __init__(self, provider: SchemaProvider, serializer: AvroMessageSerializer):
+        self.provider = provider
+        self.serializer = serializer
 
     @classmethod
     def from_config(cls, config: JsonToAvroConfig):
@@ -34,7 +27,7 @@ class JsonToAvro:
     def serialize_as_avro(
         self,
         msg: AvroableData,
-    ):
+    ) -> bytes:
         schema_candidate = AvroSchemaCandidate.from_avroable_data(msg)
         maybe_existing_registered_schema = self.provider.get(msg.subject_name)
         logger.debug("Existing Schema: %s" % maybe_existing_registered_schema)
@@ -43,7 +36,7 @@ class JsonToAvro:
             if maybe_existing_registered_schema is not None
             else self.provider.register_and_set(msg.subject_name, schema_candidate)
         )
-        logger.debug("Registered Schema: %s" % self.provider[msg.subject_name])
+        logger.debug("Registered Schema: %s", self.provider[msg.subject_name])
 
         try:
             return self.serializer.encode_record_with_schema_id(schema_id, msg.data)

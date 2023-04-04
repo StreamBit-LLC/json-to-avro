@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "json-to-avro"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "Convert arbitrary JSON data to avro serialized data, registering transitively backwards compatible schemas with Kafka Schema Registry along the way."
 authors = ["Brad Boggs <bboggs@streambit.software>"]
 license = "MIT"
