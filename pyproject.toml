@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "json-to-avro"
+version = "0.1.0a2"
+description = "Convert arbitrary JSON data to avro serialized data, registering transitively backwards compatible schemas with Kafka Schema Registry along the way."
+authors = ["Brad Boggs <bboggs@streambit.software>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "json_to_avro"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+python-schema-registry-client = {extras = ["avro"], version = "^2.4.1"}
+loguru = "^0.6.0"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.0.1"
+pytest = "^7.2.2"
+pytest-cov = "^4.0.0"
+pytest-asyncio = "^0.20.3"
+black = "^23.1.0"
+pre-commit =  "^3.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
