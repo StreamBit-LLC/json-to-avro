@@ -1,43 +1,10 @@
 import dataclasses
 import json
 from typing import (
-    List,
-    TypedDict,
     Any,
-    Optional,
-    Literal,
 )
-from json_to_avro.json_to_avro.avroable_data import AvroableData, Json
 
-NullAvroType = Literal["null"]
-PrimitiveAvroType = Literal["string", "long", "double", "boolean"]
-
-
-class ArrayAvroType(TypedDict, total=False):
-    type: Literal["array"]
-    items: "AvroType"
-    default: Optional[Any]
-
-
-class AvroField(TypedDict, total=False):
-    name: str
-    type: "AvroType"
-    default: Optional[Any]
-
-
-class RecordAvroType(TypedDict, total=False):
-    type: Literal["record"]
-    name: str
-    fields: List[AvroField]
-    default: Optional[Any]
-
-
-class NullableAvroType(TypedDict, total=False):
-    type: list[Literal["null"] | "AvroType"]
-
-
-AvroType = NullAvroType | PrimitiveAvroType | ArrayAvroType | RecordAvroType
-
+from json_to_avro.avroable_data import AvroableData
 
 PYTHON_TO_AVRO_TYPES = {
     str: "string",
@@ -47,26 +14,27 @@ PYTHON_TO_AVRO_TYPES = {
     list: "array",
     dict: "record",
 }
+
 @dataclasses.dataclass
 class MergeableAvroSchema:
-    schema_dict: RecordAvroType
+    schema_dict: dict
 
     def __add__(self, other: "MergeableAvroSchema") -> "MergeableAvroSchema":
         return self.merge_schemas(self.schema_dict, other.schema_dict)
 
     @classmethod
     def merge_schemas(
-        cls, self_data: RecordAvroType, other_data: RecordAvroType
+        cls, self_data: dict, other_data: dict
     ) -> "MergeableAvroSchema":
         return cls(cls._merge_schemas(self_data, other_data))
 
     @classmethod
     def _merge_schemas(
         cls,
-        self_data: RecordAvroType,
-        other_data: RecordAvroType,
-    ) -> RecordAvroType:
-        combined_fields = []
+        self_data: Any,
+        other_data: Any,
+    ) -> Any:
+        combined_fields: list[Any] = []
         for fst, snd in list(
             zip(
                 sorted(self_data["fields"], key=lambda r: r["name"]),
@@ -76,7 +44,7 @@ class MergeableAvroSchema:
             combined_fields = [*combined_fields, fst, snd]
 
         existing_schema_fields = set(field["name"] for field in self_data["fields"])
-        updated_fields: dict[str, AvroField] = {}
+        updated_fields: dict[Any, Any] = {}
 
         for field in combined_fields:
             match updated_fields.get(field["name"]), field:
@@ -488,7 +456,7 @@ class MergeableAvroSchema:
                         f"Can't merge {field} with {updated_fields[field['name']]}"
                     )
 
-        return RecordAvroType(
+        return dict(
             name=self_data["name"],
             type="record",
             fields=sorted(list(updated_fields.values()), key=lambda f: f["name"]),
@@ -508,9 +476,9 @@ class MergeableAvroSchema:
 
     @staticmethod
     def convert_json_to_avro_schema(
-        json_data: dict[str, Json], name: str
-    ) -> RecordAvroType:
-        avro_schema: RecordAvroType = {"type": "record", "name": name, "fields": []}
+        json_data: Any, name: str
+    ) -> dict:
+        avro_schema: dict = {"type": "record", "name": name, "fields": []}
 
         for key, value in json_data.items():
             match value:

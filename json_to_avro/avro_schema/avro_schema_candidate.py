@@ -1,7 +1,7 @@
 import dataclasses
 
 from .mergeable_avro_schema import MergeableAvroSchema
-from json_to_avro.json_to_avro.avroable_data import AvroableData
+from json_to_avro.avroable_data import AvroableData
 
 
 @dataclasses.dataclass
