@@ -5,18 +5,26 @@ from schema_registry.client import AsyncSchemaRegistryClient, SchemaRegistryClie
 from schema_registry.client.utils import SchemaVersion
 
 from json_to_avro.avro_schema.avro_schema_candidate import AvroSchemaCandidate
-from json_to_avro.avro_schema.registered_avro_schema import RegisteredAvroSchema, RegisteredAvroSchemaId
+from json_to_avro.avro_schema.registered_avro_schema import (
+    RegisteredAvroSchema,
+    RegisteredAvroSchemaId,
+)
 from loguru import logger
 
 
-def ensure_backwards_transitive_compatibility(func: Callable) -> Callable:
+def ensure_backward_transitive_compatibility(func: Callable) -> Callable:
     @functools.wraps(func)
     def wraps(*args):
         self, subject, *_ = args
         if subject not in self.current_schema_table:
-            logger.debug("Setting compatibility to BACKWARD_TRANSITIVE for %s" % subject)
-            self.schema_registry_client.update_compatibility("BACKWARD_TRANSITIVE", subject)
+            logger.debug(
+                "Setting compatibility to BACKWARD_TRANSITIVE for %s" % subject
+            )
+            self.schema_registry_client.update_compatibility(
+                "BACKWARD_TRANSITIVE", subject
+            )
         return func(*args)
+
     return wraps
 
 
@@ -30,7 +38,9 @@ class SchemaProvider:
         self.schema_registry_client = schema_registry_client
 
     @classmethod
-    def from_schema_registry_client(cls, client: SchemaRegistryClient | AsyncSchemaRegistryClient):
+    def from_schema_registry_client(
+        cls, client: SchemaRegistryClient | AsyncSchemaRegistryClient
+    ):
         current_schema_table: dict[str, RegisteredAvroSchema] = {}
         return cls(current_schema_table, client)
 
@@ -40,7 +50,7 @@ class SchemaProvider:
         """
         return self.current_schema_table[subject]
 
-    @ensure_backwards_transitive_compatibility
+    @ensure_backward_transitive_compatibility
     def get(self, subject_name: str) -> RegisteredAvroSchema | None:
         if subject_name in self.current_schema_table:
             return self.current_schema_table[subject_name]

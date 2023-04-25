@@ -22,7 +22,9 @@ class JsonToAvro:
     @classmethod
     def from_config(cls, config: JsonToAvroConfig):
         schema_registry = SchemaRegistryClient(url=config.schema_registry_url)
-        return cls(SchemaProvider({}, schema_registry), AvroMessageSerializer(schema_registry))
+        return cls(
+            SchemaProvider({}, schema_registry), AvroMessageSerializer(schema_registry)
+        )
 
     def serialize_as_avro(
         self,
@@ -36,7 +38,6 @@ class JsonToAvro:
             if maybe_existing_registered_schema is not None
             else self.provider.register_and_set(msg.subject_name, schema_candidate)
         )
-        logger.debug("Registered Schema: %s", self.provider[msg.subject_name])
 
         try:
             return self.serializer.encode_record_with_schema_id(schema_id, msg.data)
@@ -52,8 +53,8 @@ class JsonToAvro:
                 self.provider[msg.subject_name].schema + schema_candidate.schema
             )
             logger.debug("New Schema Candidate: %s" % new_schema_candidate)
-            schema_id = self.provider.register_and_set(msg.subject_name, new_schema_candidate)
+            schema_id = self.provider.register_and_set(
+                msg.subject_name, new_schema_candidate
+            )
 
             return self.serializer.encode_record_with_schema_id(schema_id, msg.data)
-
-

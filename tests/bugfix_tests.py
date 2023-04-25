@@ -525,10 +525,44 @@ def test_something_else_the_third():
     assert actual == expected
 
 
-# import pydevd_pycharm
-#
-# pydevd_pycharm.settrace(
-#     "localhost", port=7777, stdoutToServer=True, stderrToServer=True
-# )
-#
-#
+def test():
+    d1 = {
+        "name": "jobs",
+        "type": "record",
+        "fields": [
+            {
+                "name": "documents",
+                "type": {"type": "array", "items": "null", "default": []},
+            }
+        ],
+    }
+    d2 = {
+        "name": "jobs",
+        "type": "record",
+        "fields": [
+            {
+                "name": "documents",
+                "type": ["null", {"default": [], "type": "array", "items": "null"}],
+            }
+        ],
+    }
+
+    s1 = MergeableAvroSchema(d1)
+    s2 = MergeableAvroSchema(d2)
+
+    actual = s2 + s1
+    expected = MergeableAvroSchema(
+        schema_dict={
+            "fields": [
+                {
+                    "default": None,
+                    "name": "documents",
+                    "type": ["null", {"default": [], "type": "array", "items": "null"}],
+                }
+            ],
+            "name": "jobs",
+            "type": "record",
+        }
+    )
+
+    assert actual == expected

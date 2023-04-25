@@ -15,6 +15,7 @@ PYTHON_TO_AVRO_TYPES = {
     dict: "record",
 }
 
+
 @dataclasses.dataclass
 class MergeableAvroSchema:
     schema_dict: dict
@@ -23,9 +24,7 @@ class MergeableAvroSchema:
         return self.merge_schemas(self.schema_dict, other.schema_dict)
 
     @classmethod
-    def merge_schemas(
-        cls, self_data: dict, other_data: dict
-    ) -> "MergeableAvroSchema":
+    def merge_schemas(cls, self_data: dict, other_data: dict) -> "MergeableAvroSchema":
         return cls(cls._merge_schemas(self_data, other_data))
 
     @classmethod
@@ -179,12 +178,12 @@ class MergeableAvroSchema:
                     }
                 case (
                     {"name": name, "type": list(types1)},
-                    {"name": _, "type": list(types2), "default": None}
+                    {"name": _, "type": list(types2), "default": None},
                 ) if types1 == types2 and "default" not in updated_fields[name]:
                     updated_fields[name] = {
                         **updated_fields[name],
                         "type": types1,
-                        "default": None
+                        "default": None,
                     }
                 case (
                     {"name": _, "type": list(types1), "default": None},
@@ -193,7 +192,16 @@ class MergeableAvroSchema:
                     updated_fields[name] = {
                         **updated_fields[name],
                         "type": types1,
-                        "default": None
+                        "default": None,
+                    }
+                case (
+                    {"name": name, "type": ["null", dict(_) as type1] as type},
+                    {"name": _, "type": dict(_) as type2},
+                ) if type1 == type2:
+                    updated_fields[name] = {
+                        **updated_fields[name],
+                        "type": type,
+                        "default": None,
                     }
                 case (
                     {
@@ -469,15 +477,11 @@ class MergeableAvroSchema:
     @classmethod
     def from_avroable_data(cls, msg: AvroableData) -> "MergeableAvroSchema":
         return cls(
-            schema_dict=cls.convert_json_to_avro_schema(
-                msg.data, msg.record_name
-            ),
+            schema_dict=cls.convert_json_to_avro_schema(msg.data, msg.record_name),
         )
 
     @staticmethod
-    def convert_json_to_avro_schema(
-        json_data: Any, name: str
-    ) -> dict:
+    def convert_json_to_avro_schema(json_data: Any, name: str) -> dict:
         avro_schema: dict = {"type": "record", "name": name, "fields": []}
 
         for key, value in json_data.items():

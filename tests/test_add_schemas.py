@@ -1554,7 +1554,7 @@ def test_merge_schemas_with_nested_records_with_default_null():
                                 {
                                     "name": "other_charge",
                                     "type": ["null", "string"],
-                                    "default": None
+                                    "default": None,
                                 },
                             ],
                             "name": "jobs_other_charges_item",
